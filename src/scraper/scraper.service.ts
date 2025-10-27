@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import puppeteer, { Browser } from 'puppeteer';
+import { ConfigService } from '@nestjs/config';
 import { NewsService } from '../news/news.service';
 import { FeishuService } from '../feishu/feishu.service';
 import * as cheerio from 'cheerio';
@@ -9,13 +10,17 @@ import llm from 'core/llm';
 @Injectable()
 export class ScraperService implements OnModuleInit {
   private readonly logger = new Logger(ScraperService.name);
-  private symbols = ['VIVK'];
+  private symbols: string[];
   private browser: Browser; // 全局浏览器实例
 
   constructor(
     private readonly newsService: NewsService,
     private readonly feishuService: FeishuService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const symbolsStr = this.configService.get<string>('SYMBOLS', '');
+    this.symbols = symbolsStr.split(',').map(s => s.trim());
+  }
 
   async onModuleInit() {
     this.logger.log('Starting scraper...');
